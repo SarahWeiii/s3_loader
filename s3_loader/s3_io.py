@@ -31,11 +31,11 @@ def load_s3_image(s3, s3_path, block_size=16 * 1024 * 1024):
     return Image.open(s3.open(s3_path, block_size=block_size))
 
 def load_s3_exr(s3, s3_path, block_size=16 * 1024 * 1024):
-    normal = s3.open(s3_path, block_size=block_size).read()
-    normal = np.frombuffer(normal, dtype=np.uint8)
-    normal = cv2.imdecode(normal, cv2.IMREAD_UNCHANGED)
+    content = s3.open(s3_path, block_size=block_size).read()
+    content = np.frombuffer(content, dtype=np.uint8)
+    content = cv2.imdecode(content, cv2.IMREAD_UNCHANGED)
 
-    return cv2.imread(s3.open(s3_path, block_size=block_size).read(), cv2.IMREAD_UNCHANGED)
+    return content
 
 
 
