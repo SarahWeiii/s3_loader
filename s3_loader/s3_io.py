@@ -9,6 +9,7 @@ import numpy as np
 from PIL import Image
 import boto3
 import io
+from botocore.exceptions import ClientError
 
 def s3_init(s3_url='https://s3-haosu.nrp-nautilus.io'):
     if 'AWS_ACCESS_KEY_ID' not in os.environ:
@@ -22,6 +23,20 @@ def s3_init(s3_url='https://s3-haosu.nrp-nautilus.io'):
         aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
     )
     return s3
+
+def file_exists_in_s3(s3, s3_path):
+    bucket_name, key = separate_bucket_key(s3_path)
+    try:
+        # Attempt to retrieve metadata about the object
+        s3.head_object(Bucket=bucket_name, Key=key)
+        return True
+    except ClientError as e:
+        # If a ClientError is thrown, check if it was because the file does not exist
+        if e.response['Error']['Code'] == '404':
+            return False
+        else:
+            # Re-raise the exception if it was a different error
+            raise
 
 def read_file_as_bytes(s3, bucket, key):
     """ Read an S3 object as bytes directly. """
