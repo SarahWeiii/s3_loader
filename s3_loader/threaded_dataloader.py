@@ -5,12 +5,18 @@ import multiprocessing
 from multiprocessing.pool import ThreadPool
 
 
-def start_thread_group(args):
+def start_thread_group(dataset_kind, dataset, index_queues, data_queue, done_event,
+                       auto_collation, collate_fn, drop_last, base_seed, init_fn, worker_id,
+                       num_workers, persistent_workers, shared_seed):
     with ThreadPool(ThreadedDataLoaderIter.num_threads) as pool:
         tasks = [pool.apply_async(
             func=_utils.worker._worker_loop,
-            args=args
-        ) for _ in range(ThreadedDataLoaderIter.num_threads)]
+            args=(
+                dataset_kind, dataset, index_queues[i], data_queue, done_event,
+                auto_collation, collate_fn, drop_last, base_seed, init_fn, worker_id + i,
+                num_workers, persistent_workers, shared_seed
+            )
+        ) for i in range(ThreadedDataLoaderIter.num_threads)]
         for task in tasks:
             task.get()
 
@@ -45,18 +51,19 @@ class ThreadedDataLoaderIter(_MultiProcessingDataLoaderIter):
         self._workers = []
         for i in range(self._num_workers):
             # No certainty which module multiprocessing_context is
-            index_queue = multiprocessing_context.Queue()  # type: ignore[var-annotated]
+            index_queues = [multiprocessing_context.Queue() for _ in range(self.num_threads)]  # type: ignore[var-annotated]
             # Need to `cancel_join_thread` here!
             # See sections (2) and (3b) above.
-            index_queue.cancel_join_thread()
+            for index_queue in index_queues:
+                index_queue.cancel_join_thread()
 
             w = multiprocessing_context.Process(
                 target=start_thread_group,
-                args=((self._dataset_kind, self._dataset, index_queue,
-                       self._worker_result_queue, self._workers_done_event,
-                       self._auto_collation, self._collate_fn, self._drop_last,
-                       self._base_seed, self._worker_init_fn, i, self._num_workers,
-                       self._persistent_workers, self._shared_seed),))
+                args=(self._dataset_kind, self._dataset, index_queues,
+                      self._worker_result_queue, self._workers_done_event,
+                      self._auto_collation, self._collate_fn, self._drop_last,
+                      self._base_seed, self._worker_init_fn, i * self.num_threads, self._num_workers * self.num_threads,
+                      self._persistent_workers, self._shared_seed))
             w.daemon = True
             # NB: Process.start() actually take some time as it needs to
             #     start a process and pass the arguments over via a pipe.
@@ -65,9 +72,9 @@ class ThreadedDataLoaderIter(_MultiProcessingDataLoaderIter):
             #     before it starts, and __del__ tries to join but will get:
             #     AssertionError: can only join a started process.
             w.start()
-            self._index_queues.append(index_queue)
-            self._workers.append(w)
-
+            self._index_queues.extend(index_queues)
+            self._workers.extend([w] * self.num_threads)
+        self._num_workers *= self.num_threads
         self._data_queue = self._worker_result_queue
 
         # In some rare cases, persistent workers (daemonic processes)
@@ -83,7 +90,7 @@ class ThreadedDataLoaderIter(_MultiProcessingDataLoaderIter):
                 atexit.register(_MultiProcessingDataLoaderIter._clean_up_worker, w)
 
         # .pid can be None only before process is spawned (not the case, so ignore)
-        _utils.signal_handling._set_worker_pids(id(self), tuple(w.pid for w in self._workers))  # type: ignore[misc]
+        _utils.signal_handling._set_worker_pids(id(self), tuple(set(w.pid for w in self._workers)))  # type: ignore[misc]
         _utils.signal_handling._set_SIGCHLD_handler()
         self._worker_pids_set = True
         self._reset(loader, first_iter=True)
@@ -94,5 +101,4 @@ class ThreadedDataLoader(DataLoader):
         if self.num_workers == 0:
             return super()._get_iterator()
         else:
-            self.check_worker_number_rationality()
             return ThreadedDataLoaderIter(self)
