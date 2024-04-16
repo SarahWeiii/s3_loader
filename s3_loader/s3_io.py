@@ -38,6 +38,22 @@ def file_exists_in_s3(s3, s3_path):
             # Re-raise the exception if it was a different error
             raise
 
+def list_files_in_folder(s3, s3_path):
+    bucket_name, key = separate_bucket_key(s3_path)
+    if not key.endswith('/'):
+        key += '/'
+    
+    paginator = s3.get_paginator('list_objects_v2')
+    pages = paginator.paginate(Bucket=bucket_name, Prefix=key)
+    
+    files = []
+    for page in pages:
+        if 'Contents' in page:
+            for item in page['Contents']:
+                files.append(f"{bucket_name}/{item['Key']}")
+    
+    return files
+
 def read_file_as_bytes(s3, bucket, key):
     """ Read an S3 object as bytes directly. """
     # Create a new S3 client every time to ensure thread safety if needed
@@ -53,8 +69,12 @@ def read_file_as_bytes(s3, bucket, key):
     
 def separate_bucket_key(s3_path):
     bucket_name = s3_path.split('/')[0]
-    key = s3_path.replace(bucket_name, "")[1:]
+    key = s3_path.replace(bucket_name, "")
+    assert len(key) > 0, "Key is empty"
+    if key[0] == '/':
+        key = key[1:]
     return bucket_name, key
+
 
 def load_s3_json(s3, s3_path):
     bucket_name, key = separate_bucket_key(s3_path)
