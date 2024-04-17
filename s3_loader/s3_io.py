@@ -10,6 +10,7 @@ from PIL import Image
 import boto3
 import io
 from botocore.exceptions import ClientError
+import time
 
 def s3_init(s3_url='https://s3-haosu.nrp-nautilus.io'):
     if 'AWS_ACCESS_KEY_ID' not in os.environ:
@@ -54,18 +55,23 @@ def list_files_in_folder(s3, s3_path):
     
     return files
 
-def read_file_as_bytes(s3, bucket, key):
-    """ Read an S3 object as bytes directly. """
-    # Create a new S3 client every time to ensure thread safety if needed
-    try:
-        # Retrieve the object
-        response = s3.get_object(Bucket=bucket, Key=key)
-        # Read the contents of the file as bytes
-        data = response['Body'].read()
-        return data
-    except Exception as e:
-        print(f"Failed to read file from S3: {e}")
-        return None
+def read_file_as_bytes(s3, bucket, key, max_retries=3, backoff_factor=1.5):
+    """Read an S3 object as bytes directly with retry logic."""
+    attempts = 0
+    while attempts < max_retries:
+        try:
+            # Attempt to retrieve the object
+            response = s3.get_object(Bucket=bucket, Key=key)
+            # Read the contents of the file as bytes
+            return response['Body'].read()
+        except Exception as e:
+            attempts += 1
+            if attempts >= max_retries:
+                print(f"Failed to read file from S3 after {max_retries} attempts: {e}")
+                return None
+            else:
+                print(f"Attempt {attempts}: Failed to read file from S3, retrying in {backoff_factor**attempts} seconds...")
+                time.sleep(backoff_factor ** attempts)  # Exponential backoff
     
 def separate_bucket_key(s3_path):
     bucket_name = s3_path.split('/')[0]
