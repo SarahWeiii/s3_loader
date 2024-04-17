@@ -69,7 +69,7 @@ def read_file_as_bytes(s3, bucket, key, max_retries=3, backoff_factor=0.1):
                 print(f"Failed to read file from S3 after {max_retries} attempts: {e}")
                 return None
             else:
-                print(f"Attempt {attempts}: Failed to read file from S3, retrying in {backoff_factor**attempts} seconds...")
+                print(f"Attempt {attempts}: Failed to read file from S3, retrying in {backoff_factor + attempts * 0.5} seconds...")
                 time.sleep(backoff_factor + attempts * 0.5)  # Exponential backoff
             attempts += 1
     
