@@ -12,6 +12,9 @@ import io
 from botocore.exceptions import ClientError
 import time
 
+import requests
+import hacks3lb_useast
+
 def s3_init(s3_url='https://s3-haosu.nrp-nautilus.io'):
     if 'AWS_ACCESS_KEY_ID' not in os.environ:
         raise ValueError('AWS_ACCESS_KEY_ID not set')
@@ -55,23 +58,33 @@ def list_files_in_folder(s3, s3_path):
     
     return files
 
-def read_file_as_bytes(s3, bucket, key, max_retries=3, backoff_factor=0.1):
-    """Read an S3 object as bytes directly with retry logic."""
-    attempts = 0
-    while attempts < max_retries:
-        try:
-            # Attempt to retrieve the object
-            response = s3.get_object(Bucket=bucket, Key=key)
-            # Read the contents of the file as bytes
-            return response['Body'].read()
-        except Exception as e:
-            if attempts >= max_retries:
-                print(f"Failed to read file from S3 after {max_retries} attempts: {e}")
-                return None
-            else:
-                print(f"Attempt {attempts}: Failed to read file from S3, retrying in {backoff_factor + attempts * 0.5} seconds...")
-                time.sleep(backoff_factor + attempts * 0.5)  # Exponential backoff
-            attempts += 1
+# def read_file_as_bytes(s3, bucket, key, max_retries=3, backoff_factor=0.1):
+#     """Read an S3 object as bytes directly with retry logic."""
+#     attempts = 0
+#     while attempts < max_retries:
+#         try:
+#             # Attempt to retrieve the object
+#             response = s3.get_object(Bucket=bucket, Key=key)
+#             # Read the contents of the file as bytes
+#             return response['Body'].read()
+#         except Exception as e:
+#             if attempts >= max_retries:
+#                 print(f"Failed to read file from S3 after {max_retries} attempts: {e}")
+#                 return None
+#             else:
+#                 print(f"Attempt {attempts}: Failed to read file from S3, retrying in {backoff_factor + attempts * 0.5} seconds...")
+#                 time.sleep(backoff_factor + attempts * 0.5)  # Exponential backoff
+#             attempts += 1
+
+def sign_for_file(s3, bucket, key, expire_time=600):
+    return s3.generate_presigned_url('get_object',
+                                     Params={'Bucket': bucket,
+                                             'Key': key},
+                                     ExpiresIn=expire_time)
+
+def read_file_as_bytes(f):
+    signurl = sign_for_file(f)
+    return requests.get(signurl).content
     
 def separate_bucket_key(s3_path):
     bucket_name = s3_path.split('/')[0]
