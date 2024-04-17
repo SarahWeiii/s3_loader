@@ -55,7 +55,7 @@ def list_files_in_folder(s3, s3_path):
     
     return files
 
-def read_file_as_bytes(s3, bucket, key, max_retries=3, backoff_factor=1.5):
+def read_file_as_bytes(s3, bucket, key, max_retries=3, backoff_factor=0.1):
     """Read an S3 object as bytes directly with retry logic."""
     attempts = 0
     while attempts < max_retries:
@@ -65,13 +65,13 @@ def read_file_as_bytes(s3, bucket, key, max_retries=3, backoff_factor=1.5):
             # Read the contents of the file as bytes
             return response['Body'].read()
         except Exception as e:
-            attempts += 1
             if attempts >= max_retries:
                 print(f"Failed to read file from S3 after {max_retries} attempts: {e}")
                 return None
             else:
                 print(f"Attempt {attempts}: Failed to read file from S3, retrying in {backoff_factor**attempts} seconds...")
-                time.sleep(backoff_factor ** attempts)  # Exponential backoff
+                time.sleep(backoff_factor + attempts * 0.5)  # Exponential backoff
+            attempts += 1
     
 def separate_bucket_key(s3_path):
     bucket_name = s3_path.split('/')[0]
