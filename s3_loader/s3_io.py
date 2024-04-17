@@ -13,7 +13,7 @@ from botocore.exceptions import ClientError
 import time
 
 import requests
-import hacks3lb_useast
+import s3_loader.hacks3lb_useast
 
 def s3_init(s3_url='https://s3-haosu.nrp-nautilus.io'):
     if 'AWS_ACCESS_KEY_ID' not in os.environ:
@@ -82,8 +82,8 @@ def sign_for_file(s3, bucket, key, expire_time=600):
                                              'Key': key},
                                      ExpiresIn=expire_time)
 
-def read_file_as_bytes(f):
-    signurl = sign_for_file(f)
+def read_file_as_bytes(s3, bucket, key):
+    signurl = sign_for_file(s3, bucket, key)
     return requests.get(signurl).content
     
 def separate_bucket_key(s3_path):

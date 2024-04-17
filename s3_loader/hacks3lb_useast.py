@@ -1,12 +1,11 @@
 import socket
 import random
 
-
 lb = [
     "ceph00.nrp.hpc.udel.edu",
     "epic001.clemson.edu",
-    "gpn-cisco1-nautilus.greatplains.net",
-    "gpn-cisco2-nautilus.greatplains.net",
+    # "gpn-cisco1-nautilus.greatplains.net",
+    # "gpn-cisco2-nautilus.greatplains.net",
     "hcc-nrp-shor-c6025.unl.edu",
     "hcc-prp-c1312.unl.edu",
     "hcc-prp-c5027.unl.edu",
@@ -14,7 +13,7 @@ lb = [
     "k8s-gen4-01.ampath.net",
     "k8s-igrok-01.calit2.optiputer.net",
     "k8s-usra-02.calit2.optiputer.net",
-    "knuron.calit2.optiputer.net",
+    # "knuron.calit2.optiputer.net",
     "nrp-s1.nysernet.org",
     "osg.chic.nrp.internet2.edu",
     "osg.newy32aoa.nrp.internet2.edu"
@@ -22,8 +21,8 @@ lb = [
 w = [
     1 / 621.92,
     1 / 577.53,
-    1 / 444.06,
-    1 / 474.65,
+    # 1 / 444.06,
+    # 1 / 474.65,
     1 / 433.89,
     1 / 530.07,
     1 / 473.18,
@@ -31,7 +30,7 @@ w = [
     1 / 515.51,
     1 / 1109.04,
     1 / 643.26,
-    1 / 616.65,
+    # 1 / 616.65,
     1 / 482.12,
     1 / 718.72,
     1 / 511.23
