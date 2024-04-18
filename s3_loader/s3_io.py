@@ -144,9 +144,9 @@ def load_s3_image_batch(s3, s3_paths, tgt_size=(256, 256)):
     images = [
         Image.open(io.BytesIO(r)) for r in results
     ]
-    img_grid = image_grid(images, 1, len(s3_paths))
+    # img_grid = image_grid(images, 1, len(s3_paths))
 
-    return img_grid
+    return images
 
 # TODO: fix bug when loading depth
 def load_s3_exr_batch(s3, s3_paths, tgt_size=(256, 256)):

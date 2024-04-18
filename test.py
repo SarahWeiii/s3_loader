@@ -17,8 +17,8 @@ list = s3_io.list_files_in_folder(s3, "meshlrm-objaverse/views_000e246a674e4d369
 print(len(list))
 
 rook_s3 = s3_io.s3_init(s3_url="http://rook-ceph-rgw-haosu.rook-haosu")
-img_grid = s3_io.load_s3_image_batch(rook_s3, list[:8])
-# img_grid.show()
+images = s3_io.load_s3_image_batch(rook_s3, list[:8])
+images[0].show()
 
 exr_list = [f for f in list if f.endswith(".exr") and 'normal' in f]
 exr_grid = s3_io.load_s3_exr_batch(rook_s3, exr_list[:8])
