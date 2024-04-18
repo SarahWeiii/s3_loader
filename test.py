@@ -15,4 +15,11 @@ exist = s3_io.file_exists_in_s3(s3, "meshlrm-objaverse/views_000e246a674e4d36904
 print(exist)
 list = s3_io.list_files_in_folder(s3, "meshlrm-objaverse/views_000e246a674e4d36904c6101923ccb03")
 print(len(list))
-print(list[0])
+
+rook_s3 = s3_io.s3_init(s3_url="http://rook-ceph-rgw-haosu.rook-haosu")
+img_grid = s3_io.load_s3_image_batch(rook_s3, list[:8])
+# img_grid.show()
+
+exr_list = [f for f in list if f.endswith(".exr") and 'normal' in f]
+exr_grid = s3_io.load_s3_exr_batch(rook_s3, exr_list[:8])
+exr_grid.show()
