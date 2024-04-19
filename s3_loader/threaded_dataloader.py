@@ -22,7 +22,7 @@ def start_thread_group(dataset_kind, dataset, index_queues, data_queue, done_eve
 
 
 class ThreadedDataLoaderIter(_MultiProcessingDataLoaderIter):
-    num_threads = 32
+    num_threads = 4
 
     def __init__(self, loader: DataLoader):
         _BaseDataLoaderIter.__init__(self, loader)
