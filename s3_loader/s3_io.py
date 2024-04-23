@@ -12,7 +12,7 @@ from botocore.exceptions import ClientError
 import time
 
 import requests
-import s3_loader.hacks3lb_useast
+# import s3_loader.hacks3lb_useast
 from imgsvc.client import BatchRequester, ProcessRequest
 
 def s3_init(s3_url='https://s3-haosu.nrp-nautilus.io'):
