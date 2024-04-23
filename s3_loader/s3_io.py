@@ -58,6 +58,28 @@ def list_files_in_folder(s3, s3_path):
     
     return files
 
+# Jet (Xiaoshuai Zhang) Mar 2024
+def download_file_from_s3(s3, s3_path, local_path, multipart_threshold=100 * 1024 * 1024):
+    bucket_name, key = separate_bucket_key(s3_path)
+    print(bucket_name, key)
+    try:
+        # Check if the file size is above the multipart threshold
+        object_size = s3.head_object(Bucket=bucket_name, Key=key)['ContentLength']
+        if object_size > multipart_threshold:
+            # Use multipart download for large files
+            with open(local_path, 'wb') as file:
+                s3.download_fileobj(bucket_name, key, file)
+        else:
+            # Use regular download for small files
+            s3.download_file(bucket_name, key, local_path)
+        
+        print(f'Downloaded: {local_path}')
+        
+        return object_size
+    except Exception as e:
+        print(f"An error occurred while downloading {key}: {e}")
+        return 0
+
 # def read_file_as_bytes(s3, bucket, key, max_retries=3, backoff_factor=0.1):
 #     """Read an S3 object as bytes directly with retry logic."""
 #     attempts = 0

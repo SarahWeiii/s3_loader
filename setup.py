@@ -8,6 +8,7 @@ setup(
     install_requires=[
         'boto3',
         'opencv-python',
-        'Pillow'
+        'Pillow',
+        'typing_extensions',
     ]
 )
