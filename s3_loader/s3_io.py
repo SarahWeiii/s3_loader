@@ -72,7 +72,7 @@ def download_file_from_s3(s3, s3_path, local_path, multipart_threshold=100 * 102
             # Use regular download for small files
             s3.download_file(bucket_name, key, local_path)
         
-        print(f'Downloaded: {local_path}')
+        # print(f'Downloaded: {local_path}')
         
         return object_size
     except Exception as e:
