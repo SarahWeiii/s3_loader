@@ -1,4 +1,3 @@
-import s3fs
 import os
 import json
 # Enable OpenEXR support
@@ -13,7 +12,7 @@ from botocore.exceptions import ClientError
 import time
 
 import requests
-import s3_loader.hacks3lb_useast
+# import s3_loader.hacks3lb_useast
 from imgsvc.client import BatchRequester, ProcessRequest
 
 def s3_init(s3_url='https://s3-haosu.nrp-nautilus.io'):
@@ -169,81 +168,3 @@ def load_s3_exr_batch(s3, s3_paths, tgt_size=(256, 256)):
     img_grid = image_grid(images, 1, len(s3_paths))
 
     return img_grid
-
-
-
-
-
-# import io
-# import os
-# import cv2
-# import boto3
-# import numpy
-# import subprocess
-# from PIL import Image
-# from imgsvc.client import BatchRequester, ProcessRequest
-
-
-# # server_process = subprocess.Popen(
-# #     ["imgsvc-server"],
-# #     env=dict(**os.environ, IMGSVC_ALLOW_URL_HOSTS="s3-haosu.nrp-nautilus.io")
-# # )
-
-
-# def image_grid(imgs, rows, cols):
-#     assert len(imgs) == rows*cols
-
-#     w, h = imgs[0].size
-#     grid = Image.new('RGBA', size=(cols*w, rows*h))
-#     grid_w, grid_h = grid.size
-    
-#     for i, img in enumerate(imgs):
-#         grid.paste(img, box=(i%cols*w, i//cols*h))
-#     return grid
-
-
-# def sign_for_file(path, expire_time=600) -> str:
-#     return s3.generate_presigned_url('get_object',
-#                                      Params={'Bucket': 'meshlrm-objaverse',
-#                                              'Key': path},
-#                                      ExpiresIn=expire_time)
-
-
-# key = ''
-# secret = ''
-# s3 = boto3.client(
-#     's3',
-#     endpoint_url='http://rook-ceph-rgw-haosu.rook-haosu',
-#     aws_access_key_id=key,
-#     aws_secret_access_key=secret
-# )
-# br = BatchRequester("https://haosu-imgsvc.nrp-nautilus.io")
-# src_nors = [sign_for_file("views_000074a334c541878360457c672b6c2e/normal_00_in_%02d.exr" % i) for i in range(64)]
-# src_cols = [sign_for_file("views_000074a334c541878360457c672b6c2e/color_00_in_%02d.png" % i) for i in range(64)]
-# reqs = [
-#     ProcessRequest(
-#         'cv2', src_nors[i], 'exr'
-#     ).resize(256, 256, cv2.INTER_NEAREST)
-#     for i in range(64)
-# ] + [
-#     ProcessRequest(
-#         'pil', src_cols[i], 'png'
-#     ).resize(256, 256, Image.LANCZOS)
-#     for i in range(64)
-# ]
-# print("Sending request")
-# results = br.get(reqs)
-# print("Request return")
-# images = [
-#     Image.fromarray(
-#         (cv2.imdecode(numpy.frombuffer(r, dtype=numpy.uint8), cv2.IMREAD_UNCHANGED) * 255).astype(numpy.uint8),
-#         mode="RGBA"
-#     ) for r in results[:64]
-# ] + [
-#     Image.open(io.BytesIO(r)) for r in results[64:]
-# ]
-# image_grid(images, 8, 16).show()
-# # server_process.terminate()
-
-
-

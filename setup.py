@@ -6,7 +6,8 @@ setup(
     packages=find_packages(),
     description='A flash s3 dataloader for PyTorch',
     install_requires=[
-        's3fs',
-        'opencv-python'
+        'boto3',
+        'opencv-python',
+        'Pillow'
     ]
 )
