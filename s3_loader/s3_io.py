@@ -12,8 +12,12 @@ from botocore.exceptions import ClientError
 import time
 
 import requests
+import requests.packages
+
 # import s3_loader.hacks3lb_useast
 from imgsvc.client import BatchRequester, ProcessRequest
+
+requests.packages.urllib3.util.connection.HAS_IPV6 = False
 
 def s3_init(s3_url='https://s3-haosu.nrp-nautilus.io'):
     if 'AWS_ACCESS_KEY_ID' not in os.environ:
