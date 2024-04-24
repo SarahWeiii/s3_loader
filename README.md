@@ -25,4 +25,19 @@ export AWS_ENDPOINT_URL=https://s3-haosu.nrp-nautilus.io
 * load_s3_txt(s3, s3_path)
 * load_s3_image(s3, s3_path)
 * load_s3_exr(s3, s3_path)
+### Load batch data
+Note: requires using s3_client with `http://rook-ceph-rgw-haosu.rook-haosu` endpoint
+* load_s3_image_batch(s3, s3_paths, tgt_size): return a list of resized images (suggest len(s3_paths) >= 8)
+* load_s3_exr_batch(s3, s3_paths, tgt_size): return a list of resized exr files (suggest len(s3_paths) >= 8)
+### Upload / Download data
+* upload_file_to_s3(s3, local_path, s3_path, quiet=False)
+* download_file_from_s3(s3, local_path, s3_path, quiet=False)
+### Others
+* list_files_in_folder(s3, s3_path): return a list of files under s3_path
+* file_exists_in_s3(s3, s3_path): check if a file exist
 
+## Threaded Dataloader
+Replace pytorch `DataLoader` with the following one:
+```
+from s3_loader.threaded_dataloader import ThreadedDataLoader as DataLoader
+```

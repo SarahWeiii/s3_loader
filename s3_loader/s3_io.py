@@ -63,7 +63,7 @@ def list_files_in_folder(s3, s3_path):
     return files
 
 # Jet (Xiaoshuai Zhang) Mar 2024
-def download_file_from_s3(s3, s3_path, local_path, multipart_threshold=100 * 1024 * 1024):
+def download_file_from_s3(s3, s3_path, local_path, multipart_threshold=100 * 1024 * 1024, quiet=False):
     bucket_name, key = separate_bucket_key(s3_path)
     try:
         # Check if the file size is above the multipart threshold
@@ -76,11 +76,32 @@ def download_file_from_s3(s3, s3_path, local_path, multipart_threshold=100 * 102
             # Use regular download for small files
             s3.download_file(bucket_name, key, local_path)
         
-        # print(f'Downloaded: {local_path}')
+        if not quiet:
+            print(f'Downloaded: {local_path}')
         
         return object_size
     except Exception as e:
         print(f"An error occurred while downloading {key}: {e}")
+        return 0
+    
+def upload_file_to_s3(s3, local_path, s3_path, multipart_threshold=100 * 1024 * 1024, quiet=False):
+    bucket_name, key = separate_bucket_key(s3_path)
+    try:
+        # Check if the file size is above the multipart threshold
+        object_size = os.path.getsize(local_path)
+        if object_size > multipart_threshold:
+            # Use multipart upload for large files
+            s3.upload_file(local_path, bucket_name, key)
+        else:
+            # Use regular upload for small files
+            s3.upload_file(local_path, bucket_name, key)
+        
+        if not quiet:
+            print(f'Uploaded: {local_path} to {s3_path}')
+        
+        return object_size
+    except Exception as e:
+        print(f"An error occurred while uploading {local_path}: {e}")
         return 0
 
 # def read_file_as_bytes(s3, bucket, key, max_retries=3, backoff_factor=0.1):
@@ -172,7 +193,6 @@ def load_s3_image_batch(s3, s3_paths, tgt_size=(256, 256)):
 
     return images
 
-# TODO: fix bug when loading depth
 def load_s3_exr_batch(s3, s3_paths, tgt_size=(256, 256)):
     assert s3.meta.endpoint_url == 'http://rook-ceph-rgw-haosu.rook-haosu'
     br = BatchRequester("https://haosu-imgsvc.nrp-nautilus.io")
@@ -185,11 +205,8 @@ def load_s3_exr_batch(s3, s3_paths, tgt_size=(256, 256)):
     ]
     results = br.get(reqs)
     images = [
-        Image.fromarray(
-            (cv2.imdecode(np.frombuffer(r, dtype=np.uint8), cv2.IMREAD_UNCHANGED) * 255).astype(np.uint8),
-            mode="RGBA"
-        ) for r in results
+        cv2.imdecode(np.frombuffer(r, dtype=np.uint8), cv2.IMREAD_UNCHANGED)
+        for r in results
     ]
-    img_grid = image_grid(images, 1, len(s3_paths))
 
-    return img_grid
+    return images
