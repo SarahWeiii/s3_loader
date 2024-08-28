@@ -24,10 +24,14 @@ images[0].show()
 normal_list = [f for f in list if f.endswith(".exr") and 'normal' in f]
 normals = s3_io.load_s3_exr_batch(rook_s3, normal_list[:8])
 cv2.imwrite('normal.png', normals[0]*255)
+cv2.imwrite('normal.exr', normals[0])
 
 depth_list = [f for f in list if f.endswith(".exr") and 'depth' in f]
 depths = s3_io.load_s3_exr_batch(rook_s3, depth_list[:8])
 cv2.imwrite('depth.png', depths[0][...,0]*255)
 
-# s3_io.download_file_from_s3(s3, "meshlrm-objaverse/views_000e246a674e4d36904c6101923ccb03/color_00_in_00.png", "a.png")
-# s3_io.upload_file_to_s3(s3, "a.png", "xiwei-test/color_00_in_00.png")
+s3_io.download_file_from_s3(s3, "meshlrm-objaverse/views_000e246a674e4d36904c6101923ccb03/color_00_in_00.png", "a.png")
+s3_io.upload_file_to_s3(s3, "a.png", "xiwei-test/color_00_in_00.png")
+s3_io.delete_file_in_s3(s3, "xiwei-test/color_00_in_00.png")
+
+s3_io.delete_folder_in_s3(s3, "xiwei-test/wildimages")

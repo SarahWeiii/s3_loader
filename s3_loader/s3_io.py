@@ -121,6 +121,23 @@ def upload_file_to_s3(s3, local_path, s3_path, multipart_threshold=100 * 1024 * 
 #                 print(f"Attempt {attempts}: Failed to read file from S3, retrying in {backoff_factor + attempts * 0.5} seconds...")
 #                 time.sleep(backoff_factor + attempts * 0.5)  # Exponential backoff
 #             attempts += 1
+    
+def delete_file_in_s3(s3, s3_path):
+    bucket_name, key = separate_bucket_key(s3_path)
+    s3.delete_object(Bucket=bucket_name, Key=key)
+
+def delete_folder_in_s3(s3, s3_path):
+    bucket_name, key = separate_bucket_key(s3_path)
+    if not key.endswith('/'):
+        key += '/'
+    
+    paginator = s3.get_paginator('list_objects_v2')
+    pages = paginator.paginate(Bucket=bucket_name, Prefix=key)
+    
+    for page in pages:
+        if 'Contents' in page:
+            for item in page['Contents']:
+                s3.delete_object(Bucket=bucket_name, Key=item['Key'])
 
 def sign_for_file(s3, bucket, key, expire_time=600):
     return s3.generate_presigned_url('get_object',
