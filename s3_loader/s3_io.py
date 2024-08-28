@@ -48,17 +48,27 @@ def file_exists_in_s3(s3, s3_path):
 
 def list_files_in_folder(s3, s3_path):
     bucket_name, key = separate_bucket_key(s3_path)
-    if not key.endswith('/'):
-        key += '/'
-    
     paginator = s3.get_paginator('list_objects_v2')
-    pages = paginator.paginate(Bucket=bucket_name, Prefix=key)
     
-    files = []
-    for page in pages:
-        if 'Contents' in page:
-            for item in page['Contents']:
-                files.append(f"{bucket_name}/{item['Key']}")
+    if key is None:
+        pages = paginator.paginate(Bucket=bucket_name)
+
+        files = []
+        for page in pages:
+            if 'Contents' in page:
+                for item in page['Contents']:
+                    files.append(item['Key'])
+    else:
+        if not key.endswith('/'):
+            key += '/'
+        
+        pages = paginator.paginate(Bucket=bucket_name, Prefix=key)
+        
+        files = []
+        for page in pages:
+            if 'Contents' in page:
+                for item in page['Contents']:
+                    files.append(f"{bucket_name}/{item['Key']}")
     
     return files
 
@@ -152,7 +162,8 @@ def read_file_as_bytes(s3, bucket, key):
 def separate_bucket_key(s3_path):
     bucket_name = s3_path.split('/')[0]
     key = s3_path.replace(bucket_name, "")
-    assert len(key) > 0, "Key is empty"
+    if len(key) == 0:
+        return bucket_name, None
     if key[0] == '/':
         key = key[1:]
     return bucket_name, key
