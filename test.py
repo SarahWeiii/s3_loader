@@ -10,6 +10,8 @@ img = s3_io.load_s3_image(s3, "meshlrm-objaverse/views_000e246a674e4d36904c61019
 print(np.array(img).shape)
 normal = s3_io.load_s3_exr(s3, "meshlrm-objaverse/views_000e246a674e4d36904c6101923ccb03/normal_00_in_00.exr")
 print(normal.shape)
+sdf = s3_io.load_s3_npz(s3, "shapedex-info/sdfs/0000a07f-f156-4f8a-8666-e8fa6c94982d/Object_0/0_points_0.npz")
+print(sdf.keys())
 txt = s3_io.load_s3_txt(s3, "xiwei-test/dataset_paths/s3_objaverse_two_obj_debug.txt")
 print(txt[:5])
 exist = s3_io.file_exists_in_s3(s3, "meshlrm-objaverse/views_000e246a674e4d36904c6101923ccb03/normal_0s0_in_00.exr")
@@ -33,7 +35,9 @@ cv2.imwrite('depth.png', depths[0][...,0]*255)
 
 list = s3_io.list_files_in_folder(s3, "shapedex-info")
 print(len(list))
-print(list[:5])
+
+s3_io.delete_folder_in_s3(s3, "shapedex-info/jsons")
+
 
 s3_io.download_file_from_s3(s3, "meshlrm-objaverse/views_000e246a674e4d36904c6101923ccb03/color_00_in_00.png", "a.png")
 s3_io.upload_file_to_s3(s3, "a.png", "xiwei-test/color_00_in_00.png")
