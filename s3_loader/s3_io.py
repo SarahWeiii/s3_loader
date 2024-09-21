@@ -196,7 +196,7 @@ def load_s3_npz(s3, s3_path):
     bucket_name, key = separate_bucket_key(s3_path)
     bytes = read_file_as_bytes(s3, bucket_name, key)
     npz_stream = io.BytesIO(bytes)
-    return np.load(npz_stream)
+    return np.load(npz_stream, allow_pickle=True)
 
 def image_grid(imgs, rows, cols):
     assert len(imgs) == rows*cols
